@@ -4,17 +4,12 @@ class NegociacaoController {
         this._inputData = $("#data");
         this._inputQuantidade = $("#quantidade");
         this._inputValor = $("#valor");
+        this._ordemAtual = '';
 
-        this._listaNegociacoes = new Bind(
-            new ListaNegociacoes(),
-            new NegociacoesView($("#negociacoesView")),
-            "adiciona", 
-            "esvazia");
+        this._listaNegociacoes = new Bind(new ListaNegociacoes(),
+                                          new NegociacoesView($("#negociacoesView")), "adiciona", "esvazia", "ordena", "inverteOrdem");
         
-        this._mensagem = new Bind(
-            new Mensagem(),  
-            new MensagemView($("#mensagemView")),
-            "texto");
+        this._mensagem = new Bind(new Mensagem(), new MensagemView($("#mensagemView")), "texto");
     }
 
     adiciona(event) {
@@ -33,7 +28,7 @@ class NegociacaoController {
                      service.obterNegociacoesDaSemanaRetrasada()]
         ).then(negociacoes => {
             negociacoes.reduce((arrayAchatado, array) => arrayAchatado.concat(array), [])
-            .forEach(negociacao => this._listaNegociacoes.adiciona(negociacao));
+                       .forEach(negociacao => this._listaNegociacoes.adiciona(negociacao));
         })
         .catch(erro => this._mensagem.texto = erro);
     }
@@ -43,6 +38,14 @@ class NegociacaoController {
         this._mensagem.texto = "Negociações apagadas com sucesso";
     }
 
+    ordena(coluna) {
+        if (this._ordemAtual == coluna) {
+            this._listaNegociacoes.inverteOrdem(); 
+        } else {
+            this._listaNegociacoes.ordena((a, b) => a[coluna] - b[coluna]);
+        }
+        this._ordemAtual = coluna;
+    }
     _criaNegociacao() {
         return new Negociacao(DateHelper.textoParaData(this._inputData.val()),
                                                        this._inputQuantidade.val(),
